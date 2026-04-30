@@ -46,97 +46,146 @@
 </html>-->
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <title>Panel de Control - Volper Seal</title>
     <!-- CSS de DataTables y Estilos -->
     <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
     <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 20px; background: #f8f9fa; }
-        .container { max-width: 1200px; margin: auto; background: white; padding: 25px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
-        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
-        #btnUpdate { background: #28a745; color: white; border: none; padding: 12px 24px; border-radius: 5px; cursor: pointer; font-weight: bold; }
-        #btnUpdate:disabled { background: #6c757d; }
-        .status-msg { font-size: 0.9rem; margin-top: 5px; color: #666; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 20px;
+            background: #f8f9fa;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: auto;
+            background: white;
+            padding: 25px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        #btnUpdate {
+            background: #28a745;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        #btnUpdate:disabled {
+            background: #6c757d;
+        }
+
+        .status-msg {
+            font-size: 0.9rem;
+            margin-top: 5px;
+            color: #666;
+        }
     </style>
 </head>
+
 <body>
 
-<div class="container">
-    <div class="header">
-        <div>
-            <h1>📦 Inventario Volper Seal</h1>
-            <div id="status" class="status-msg">Listo para operar.</div>
+    <div class="container">
+        <div class="header">
+            <div>
+                <h1>📦 Inventario Volper Seal</h1>
+                <div id="status" class="status-msg">Listo para operar.</div>
+            </div>
+            <button id="btnUpdate">🔄 Sincronizar Catálogo</button>
         </div>
-        <button id="btnUpdate">🔄 Sincronizar Catálogo</button>
+
+        <hr>
+
+        <!-- Tabla de Productos -->
+        <table id="productsTable" class="display" style="width:100%">
+            <thead>
+                <tr>
+                    <th>ID Interno</th>
+                    <th>Nombre</th>
+                    <th>Categoría</th>
+                    <th>Stock</th>
+                    <th>Precio Venta</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Los datos se cargan vía AJAX -->
+            </tbody>
+        </table>
     </div>
 
-    <hr>
+    <!-- Scripts Necesarios -->
+    <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
 
-    <!-- Tabla de Productos -->
-    <table id="productsTable" class="display" style="width:100%">
-        <thead>
-            <tr>
-                <th>ID Interno</th>
-                <th>Nombre</th>
-                <th>Categoría</th>
-                <th>Stock</th>
-                <th>Precio Venta</th>
-            </tr>
-        </thead>
-        <tbody>
-            <!-- Los datos se cargan vía AJAX -->
-        </tbody>
-    </table>
-</div>
-
-<!-- Scripts Necesarios -->
-<script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
-<script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
-
-<script>
-    $(document).ready(function() {
-        // Inicializar DataTable con tus requisitos de 20, 50, 100
-        const table = $('#productsTable').DataTable({
-            ajax: {
-                url: '/api/products',
-                dataSrc: ''
-            },
-            columns: [
-                { data: 'internal_id' },
-                { data: 'name' },
-                { data: 'category' },
-                { data: 'stock' },
-                { data: 'salePrice' }
-            ],
-            language: {
+    <script>
+        $(document).ready(function () {
+            // Inicializar DataTable con tus requisitos de 20, 50, 100
+            const table = $('#productsTable').DataTable({
+                ajax: {
+                    url: '/api/products',
+                    dataSrc: ''
+                },
+                columns: [
+                    { data: 'internal_id' },
+                    { data: 'name' },
+                    { data: 'category' },
+                    { data: 'stock' },
+                    { data: 'salePrice' }
+                ],
+            /*language: {
                 url: '//cdn.datatables.net/plug-ins/1.13.6/i18n/es-ES.json'
-            },
-            pageLength: 20,
-            lengthMenu: [20, 50, 100] // Menú desplegable solicitado
-        });
+            }*/language: {
+                    search: "Buscar:",
+                    lengthMenu: "Mostrar _MENU_ registros",
+                    info: "Mostrando _START_ a _END_ de _TOTAL_ entradas",
+                    paginate: {
+                        first: "Primero",
+                        last: "Último",
+                        next: "Siguiente",
+                        previous: "Anterior"
+                    },
+                    loadingRecords: "Cargando productos..."
+                },
+                pageLength: 20,
+                lengthMenu: [20, 50, 100] // Menú desplegable solicitado
+            });
 
-        // Lógica del Botón de Actualización
-        $('#btnUpdate').click(async function() {
-            const btn = $(this);
-            btn.prop('disabled', true);
-            $('#status').text("⏳ Procesando 1744 productos... Por favor espere.");
+            // Lógica del Botón de Actualización
+            $('#btnUpdate').click(async function () {
+                const btn = $(this);
+                btn.prop('disabled', true);
+                $('#status').text("⏳ Procesando 1744 productos... Por favor espere.");
 
-            try {
-                const res = await fetch('/api/update-catalog');
-                const data = await res.json();
-                if (data.success) {
-                    $('#status').text("✅ ¡Éxito! Recargando tabla...");
-                    table.ajax.reload(); // Recarga la tabla automáticamente
+                try {
+                    const res = await fetch('/api/update-catalog');
+                    const data = await res.json();
+                    if (data.success) {
+                        $('#status').text("✅ ¡Éxito! Recargando tabla...");
+                        table.ajax.reload(); // Recarga la tabla automáticamente
+                    }
+                } catch (err) {
+                    $('#status').text("❌ Error en la comunicación.");
+                } finally {
+                    btn.prop('disabled', false);
                 }
-            } catch (err) {
-                $('#status').text("❌ Error en la comunicación.");
-            } finally {
-                btn.prop('disabled', false);
-            }
+            });
         });
-    });
-</script>
+    </script>
 
 </body>
+
 </html>

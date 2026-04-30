@@ -33,6 +33,7 @@ app.get('/api/products', async (req, res) => {
         });
         res.json(products);
     } catch (error) {
+        console.error("❌ Error en BD:", error);
         res.status(500).json({ error: "Error al obtener productos" });
     }
 });
