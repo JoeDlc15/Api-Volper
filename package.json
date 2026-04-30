@@ -1,4 +1,10 @@
 {
+  "name": "api-volper",
+  "version": "1.0.0",
+  "main": "import.js",
+  "scripts": {
+  "start": "chmod +x ./node_modules/.bin/prisma && npx prisma generate && node extraer_auto.js && node import.js"
+  },
   "dependencies": {
     "axios": "^1.15.2",
     "axios-cookiejar-support": "^4.0.3",
