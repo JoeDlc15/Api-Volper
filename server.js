@@ -21,6 +21,22 @@ app.get('/api/update-catalog', (req, res) => {
     });
 });
 
+// Añade esto a tu archivo server.js actual
+const { PrismaClient } = require('@prisma/client');
+const prisma = new PrismaClient();
+
+// Ruta para obtener los productos para la tabla
+app.get('/api/products', async (req, res) => {
+    try {
+        const products = await prisma.product.findMany({
+            orderBy: { createdAt: 'desc' }
+        });
+        res.json(products);
+    } catch (error) {
+        res.status(500).json({ error: "Error al obtener productos" });
+    }
+});
+
 app.listen(port, () => {
     console.log(`🌐 Servidor de Volper Seal corriendo en http://localhost:${port}`);
 });
