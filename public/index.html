@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Volper Seal - Admin</title>
+    <style>
+        body { font-family: sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; background: #f4f4f9; }
+        .card { background: white; padding: 2rem; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); text-align: center; }
+        button { background: #007bff; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; font-size: 1rem; }
+        button:disabled { background: #ccc; }
+        #status { margin-top: 1rem; color: #555; }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h1>Admin Volper Seal</h1>
+        <p>Sincronización de Inventario (Extraer + Importar)</p>
+        <button id="btnUpdate">Actualizar Catálogo Ahora</button>
+        <div id="status">Listo para actualizar.</div>
+    </div>
+
+    <script>
+        const btn = document.getElementById('btnUpdate');
+        const status = document.getElementById('status');
+
+        btn.addEventListener('click', async () => {
+            btn.disabled = true;
+            status.innerText = "⏳ Procesando 1744 productos... esto tardará unos minutos.";
+            
+            try {
+                const response = await fetch('/api/update-catalog');
+                const data = await response.json();
+                if (data.success) {
+                    status.innerText = "✅ ¡Actualización completada con éxito!";
+                } else {
+                    status.innerText = "❌ Error: " + data.message;
+                }
+            } catch (err) {
+                status.innerText = "❌ Error de conexión con el servidor.";
+            } finally {
+                btn.disabled = false;
+            }
+        });
+    </script>
+</body>
+</html>
