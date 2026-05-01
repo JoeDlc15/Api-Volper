@@ -28,7 +28,7 @@ async function main() {
         create: {
           internal_id: item.internal_id,
           barcode: item.barcode || '',
-          name: item.name,
+          name: item.name || 'Sin Nombre',
           description: item.description || '', // Maneja los nulls
           category: item.item_category_name || 'Sin Categoría',
           stock: parseFloat(item.stock) || 0,

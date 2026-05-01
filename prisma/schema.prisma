@@ -42,3 +42,24 @@ model BomStructure {
 
   @@unique([parentId, componentId])
 }
+
+model Quotation {
+  id            String          @id @default(uuid())
+  number        String          @unique // COT-1532
+  date          String          // 2026-04-30
+  time          String          // 17:34:32
+  customerName  String          // HYDRAULIC HOUSE JIREH E.I.R.L.
+  address       String          // AV. LAS TORRES MZ. K LT. 1 OTR. LURIGANCHO
+  items         QuotationItem[]
+  createdAt     DateTime        @default(now())
+}
+
+model QuotationItem {
+  id          String    @id @default(uuid())
+  quotationId String
+  productId   String    // ID interno o SKU
+  description String    // Nombre del producto
+  quantity    Float     // Cantidad requerida
+  stockSystem Float     // Stock físico actual en el almacén principal
+  quotation   Quotation @relation(fields: [quotationId], references: [id])
+}

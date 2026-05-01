@@ -1,10 +1,39 @@
+// Al principio de server.js, configura el cliente con cookies igual que en extraer_auto.js
+const axios = require('axios');
+const { wrapper } = require('axios-cookiejar-support');
+const { CookieJar } = require('tough-cookie');
+const cheerio = require('cheerio');
+
 const express = require('express');
 const { exec } = require('child_process');
 const path = require('path');
 const app = express();
 const port = process.env.PORT || 3000;
 
+// AGREGA ESTA LÍNEA AQUÍ (Es vital para procesar el número de cotización)
+app.use(express.json());
+
 app.use(express.static('public'));
+
+const jar = new CookieJar();
+const client = wrapper(axios.create({
+    jar,
+    withCredentials: true,
+    baseURL: 'https://volperseal.goldensystem.com.pe'
+}));
+
+// Función para asegurar login antes de pedir la cotización
+async function login() {
+    const loginPage = await client.get('/login');
+    const $ = cheerio.load(loginPage.data);
+    const csrfToken = $('input[name="_token"]').val();
+    await client.post('/login', new URLSearchParams({
+        '_token': csrfToken,
+        'email': 'administrador@volperseal.com',
+        'password': '554volperseal'
+    }));
+}
+
 
 // Ruta para activar la sincronización
 app.get('/api/update-catalog', (req, res) => {
@@ -35,6 +64,75 @@ app.get('/api/products', async (req, res) => {
     } catch (error) {
         console.error("❌ Error en BD:", error);
         res.status(500).json({ error: "Error al obtener productos" });
+    }
+});
+
+// Ruta para agregar una cotización específica
+// Actualiza tu ruta POST
+app.post('/api/add-quotation', async (req, res) => {
+    const { quotationNumber } = req.body;
+    try {
+        await login(); // <--- Inicia sesión primero
+        const response = await client.get(`/quotations/record/${quotationNumber}`);
+        const data = response.data.data;
+
+        const newQuotation = await prisma.quotation.upsert({
+            where: { number: data.number_full },
+            update: {},
+            create: {
+                number: data.number_full,
+                date: data.date_of_issue,
+                time: data.quotation.time_of_issue,
+                customerName: data.quotation.customer.name,
+                address: data.quotation.customer.address,
+                items: {
+                    create: data.quotation.items.map(line => ({
+                        productId: line.item.internal_id,
+                        description: line.item.description,
+                        quantity: parseFloat(line.quantity),
+                        stockSystem: parseFloat(line.item.stock)
+                    }))
+                }
+            }
+        });
+        res.json({ success: true, message: `Cotización ${quotationNumber} agregada.` });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+
+// RUTA QUE TE FALTA: Permite que la web consulte los datos de la cotización
+app.get('/api/quotations/:number', async (req, res) => {
+    try {
+        const { number } = req.params; // Esto recibe "COT-1530"
+        
+        const quotation = await prisma.quotation.findUnique({
+            where: { number: number },
+            include: { items: true } // Esto es vital para traer los productos
+        });
+        
+        if (!quotation) {
+            console.log(`❌ No se encontró la cotización ${number} en la base de datos.`);
+            return res.status(404).json({ error: "Cotización no encontrada" });
+        }
+        
+        res.json(quotation);
+    } catch (error) {
+        console.error("❌ Error al buscar cotización:", error);
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// Obtener todas las cotizaciones (sin los items, para que sea rápido)
+app.get('/api/quotations', async (req, res) => {
+    try {
+        const quotations = await prisma.quotation.findMany({
+            orderBy: { createdAt: 'desc' }
+        });
+        res.json(quotations);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
     }
 });
 
