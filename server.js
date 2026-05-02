@@ -102,28 +102,6 @@ app.post('/api/add-quotation', async (req, res) => {
     }
 });
 
-// RUTA QUE TE FALTA: Permite que la web consulte los datos de la cotización
-app.get('/api/quotations/:number', async (req, res) => {
-    try {
-        const { number } = req.params; // Esto recibe "COT-1530"
-        
-        const quotation = await prisma.quotation.findUnique({
-            where: { number: number },
-            include: { items: true } // Esto es vital para traer los productos
-        });
-        
-        if (!quotation) {
-            console.log(`❌ No se encontró la cotización ${number} en la base de datos.`);
-            return res.status(404).json({ error: "Cotización no encontrada" });
-        }
-        
-        res.json(quotation);
-    } catch (error) {
-        console.error("❌ Error al buscar cotización:", error);
-        res.status(500).json({ error: error.message });
-    }
-});
-
 // Obtener todas las cotizaciones (sin los items, para que sea rápido)
 app.get('/api/quotations', async (req, res) => {
     try {
@@ -131,6 +109,38 @@ app.get('/api/quotations', async (req, res) => {
             orderBy: { createdAt: 'desc' }
         });
         res.json(quotations);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// Permite que la web consulte los datos de la cotización
+app.get('/api/quotations/:number', async (req, res) => {
+    try {
+        const { number } = req.params;
+
+        // Buscamos la cotización y usamos el internal_id para traer el stock de la tabla Product
+        const quotation = await prisma.quotation.findUnique({
+            where: { number: number },
+            include: { items: true }
+        });
+
+        if (!quotation) return res.status(404).json({ error: "Cotización no encontrada" });
+
+        // Mapeamos los items para añadirles el stock que ya tienes en tu tabla de inventario
+        const itemsSincerados = await Promise.all(quotation.items.map(async (item) => {
+            const infoInventario = await prisma.product.findUnique({
+                where: { internal_id: item.productId },
+                select: { stock: true } // Jalamos el dato actualizado de tu tabla de inventario
+            });
+
+            return {
+                ...item,
+                stockInventarioActual: infoInventario ? infoInventario.stock : 0
+            };
+        }));
+
+        res.json({ ...quotation, items: itemsSincerados });
     } catch (error) {
         res.status(500).json({ error: error.message });
     }

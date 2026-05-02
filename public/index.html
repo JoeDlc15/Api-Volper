@@ -81,7 +81,7 @@
         </table>
     </div>
 
-    
+
 
     <!-- Sección para agregar cotización -->
     <div class="container card" style="margin-bottom: 20px; margin-top: 15px; padding: 25px;">
@@ -116,18 +116,27 @@
         <p><strong>Fecha/Hora:</strong> <span id="detDateTime"></span></p>
 
         <table id="itemsTable" border="1" style="width: 100%; border-collapse: collapse; margin-top: 10px;">
-            <thead>
+            <!--<thead>
                 <tr style="background: #eee;">
                     <th>Producto</th>
                     <th>Requerido</th>
                     <th>Stock Sistema</th>
                     <th>Estado</th>
                 </tr>
+            </thead>-->
+            <!-- Actualiza los encabezados de tu tabla en el HTML -->
+            <thead>
+                <tr style="background: #eee;">
+                    <th>Producto</th>
+                    <th>Requerido</th>
+                    <th>Stock Sistema (Histórico)</th> <!-- El que viene en el JSON -->
+                    <th>Stock Actual (Referencia)</th> <!-- El de tu tabla sincerada -->
+                    <th>Estado</th>
+                </tr>
             </thead>
             <tbody id="detItemsBody"></tbody>
         </table>
     </div>
-    
 
     <!-- Scripts Necesarios -->
     <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
@@ -161,7 +170,7 @@
             cargarHistorial();
         });
     </script>
-    
+
     <script>
         // Función para buscar y mostrar la cotización
         async function verCotizacion(numero) {
@@ -177,7 +186,7 @@
 
                 const tbody = document.getElementById('detItemsBody');
                 tbody.innerHTML = "";
-
+                /*
                 data.items.forEach(item => {
                     const stockOk = item.stockSystem >= item.quantity;
                     const color = stockOk ? "green" : "red";
@@ -191,6 +200,24 @@
                         <td>${estado}</td>
                     </tr>
                 `;
+                });*/
+
+               // Actualizamos Dentro de la función verCotizacion, en el forEach de los items:
+                data.items.forEach(item => {
+                    // La comparación ahora es contra el stock de tu inventario actualizado
+                    const stockOk = item.stockInventarioActual >= item.quantity;
+                    const colorStock = stockOk ? "green" : "red";
+                    const estado = stockOk ? "✅ Disponible" : "❌ Insuficiente";
+                    
+                    tbody.innerHTML += `
+                        <tr>
+                            <td>${item.description}</td>
+                            <td>${item.quantity}</td>
+                            <td style="color: #888;">${item.stockSystem}</td> <!-- Stock que venía en el JSON original[cite: 1] -->
+                            <td style="font-weight: bold; color: ${colorStock}">${item.stockInventarioActual}</td> <!-- Stock de tu inventario actualizado -->
+                            <td>${estado}</td>
+                        </tr>
+                    `;
                 });
             } else {
                 alert("Error: " + data.error);

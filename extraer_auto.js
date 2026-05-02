@@ -51,6 +51,7 @@ async function iniciarMision() {
 
         while (hayMasPaginas) {
             // Usamos la URL que identificaste en el navegador
+            // La URL obtiene los datos de todos los almacenes
             const url = `/inventory/report/records?active&brand_id&category_id&filter=01&page=${paginaActual}&warehouse_id=all`;
 
             const response = await client.get(url);
