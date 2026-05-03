@@ -3,6 +3,7 @@ const { wrapper } = require('axios-cookiejar-support');
 const { CookieJar } = require('tough-cookie');
 const cheerio = require('cheerio');
 const fs = require('fs');
+const path = require('path');
 
 // 1. Configuramos el "Tarro de Cookies" para que la sesión se mantenga activa
 const jar = new CookieJar();
@@ -32,17 +33,6 @@ async function iniciarMision() {
         }));
         console.log("✅ Sesión iniciada con éxito.");
 
-        /*console.log("--- 📥 Paso 3: Extrayendo los 1,744 productos ---");
-        // Pedimos 2000 para asegurarnos de que vengan todos de golpe
-        const response = await client.get('/inventory/report/records?per_page=2000');
-        
-        const productos = response.data.data;
-        console.log(`✅ ¡Éxito! Se extrajeron ${productos.length} productos.`);
-
-        // 4. Guardar en el archivo que usa tu script de importación
-        fs.writeFileSync('./product.json', JSON.stringify(productos, null, 2));
-        console.log("💾 Archivo 'product.json' actualizado y listo para Prisma.");
-*/
         console.log("--- 🔄 Paso 3: Iniciando extracción masiva (35 páginas aprox.) ---");
 
         let todosLosProductos = [];
@@ -76,8 +66,9 @@ async function iniciarMision() {
 
         console.log(`✅ ¡Misión completa! Total final: ${todosLosProductos.length} productos.`);
 
-        // 4. Guardar TODO el array masivo
-        fs.writeFileSync('./product.json', JSON.stringify(todosLosProductos, null, 2));
+        // 4. Guardar TODO el array masivo en la raíz del proyecto
+        const jsonPath = path.join(__dirname, '../product.json');
+        fs.writeFileSync(jsonPath, JSON.stringify(todosLosProductos, null, 2));
         console.log("💾 Archivo 'product.json' actualizado con la base de datos completa.");
     } catch (error) {
         console.error("❌ Fallo en la extracción automática:", error.message);

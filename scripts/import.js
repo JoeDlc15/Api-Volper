@@ -1,5 +1,6 @@
 const { PrismaClient } = require('@prisma/client');
 const fs = require('fs');
+const path = require('path');
 
 const prisma = new PrismaClient();
 
@@ -7,8 +8,9 @@ async function main() {
   console.log('🚀 Iniciando carga de productos a PostgreSQL (Docker)...');
 
   // 1. Leer el archivo JSON
-  // Asegúrate de que tu archivo se llame 'productos.json' y esté en la misma carpeta
-  const rawData = fs.readFileSync('./product.json');
+  // Asegúrate de que tu archivo se llame 'product.json' y esté en la raíz
+  const jsonPath = path.join(__dirname, '../product.json');
+  const rawData = fs.readFileSync(jsonPath);
   const productos = JSON.parse(rawData);
 
   console.log(`📦 Procesando ${productos.length} registros encontrados.`);

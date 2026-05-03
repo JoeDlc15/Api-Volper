@@ -39,8 +39,8 @@ async function login() {
 app.get('/api/update-catalog', (req, res) => {
     console.log("🚀 Iniciando actualización manual desde la web...");
     
-    // Ejecuta tus scripts en orden
-    exec('node extraer_auto.js && node import.js', (error, stdout, stderr) => {
+    // Ejecuta tus scripts en orden desde la nueva carpeta
+    exec('node scripts/extraer_auto.js && node scripts/import.js', (error, stdout, stderr) => {
         if (error) {
             console.error(`❌ Error: ${error.message}`);
             return res.status(500).json({ success: false, message: error.message });
@@ -83,8 +83,8 @@ app.post('/api/add-quotation', async (req, res) => {
                 number: data.number_full,
                 date: data.date_of_issue,
                 time: data.quotation.time_of_issue,
-                customerName: data.quotation.customer.name,
-                address: data.quotation.customer.address,
+                customerName: data.quotation.customer.name || "Sin Nombre",
+                address: data.quotation.customer.address || "Sin Dirección",
                 items: {
                     create: data.quotation.items.map(line => ({
                         productId: line.item.internal_id,

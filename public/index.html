@@ -3,342 +3,134 @@
 
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Panel de Control - Volper Seal</title>
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <!-- CSS de DataTables y Estilos -->
     <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
-    <style>
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            margin: 20px;
-            background: #f8f9fa;
-        }
-
-        .container {
-            max-width: 1200px;
-            margin: auto;
-            background: white;
-            padding: 25px;
-            border-radius: 8px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-        }
-
-        .header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-        }
-
-        #btnUpdate {
-            background: #28a745;
-            color: white;
-            border: none;
-            padding: 12px 24px;
-            border-radius: 5px;
-            cursor: pointer;
-            font-weight: bold;
-        }
-
-        #btnUpdate:disabled {
-            background: #6c757d;
-        }
-
-        .status-msg {
-            font-size: 0.9rem;
-            margin-top: 5px;
-            color: #666;
-        }
-    </style>
+    <link rel="stylesheet" href="css/style.css">
 </head>
 
 <body>
 
-    <div class="container">
-        <div class="header">
-            <div>
-                <h1>📦 Inventario Volper Seal</h1>
-                <div id="status" class="status-msg">Listo para operar.</div>
-            </div>
-            <button id="btnUpdate">🔄 Sincronizar Catálogo</button>
+    <!-- Mobile Header 
+    <div class="mobile-header">
+        <h2>Volper Seal</h2>
+        <button id="menu-toggle" class="btn-icon">☰</button>
+    </div>-->
+
+    <!-- Sidebar -->
+    <nav class="sidebar">
+        <div class="sidebar-header">
+            <h2>Volper Seal</h2>
         </div>
+        <ul class="nav-menu">
+            <li><a href="#" class="nav-link active" data-target="view-inventory">📦 Inventario</a></li>
+            <li><a href="#" class="nav-link" data-target="view-quotations">📑 Cotizaciones</a></li>
+        </ul>
+    </nav>
 
-        <hr>
+    <!-- Main Content -->
+    <main class="main-content">
 
-        <!-- Tabla de Productos -->
-        <table id="productsTable" class="display" style="width:100%">
-            <thead>
-                <tr>
-                    <th>ID Interno</th>
-                    <th>Nombre</th>
-                    <th>Categoría</th>
-                    <th>Stock</th>
-                    <th>Precio Venta</th>
-                </tr>
-            </thead>
-            <tbody>
-                <!-- Los datos se cargan vía AJAX -->
-            </tbody>
-        </table>
-    </div>
+        <!-- View: Inventario -->
+        <section id="view-inventory" class="view-section active">
+            <div class="container">
+                <div class="header-actions">
+                    <div>
+                        <h1>📦 Inventario Volper Seal</h1>
+                        <div id="status" class="status-msg">Listo para operar.</div>
+                    </div>
+                    <button id="btnUpdate" class="btn btn-primary">🔄 Sincronizar Catálogo</button>
+                </div>
+                <hr>
+                <div class="table-container">
+                    <table id="productsTable" class="display nowrap" style="width:100%">
+                        <thead>
+                            <tr>
+                                <th>ID Interno</th>
+                                <th>Nombre</th>
+                                <th>Categoría</th>
+                                <th>Stock</th>
+                                <th>Precio Venta</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Data loaded via AJAX -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
 
+        <!-- View: Cotizaciones -->
+        <section id="view-quotations" class="view-section">
 
+            <div class="container card">
+                <h3>➕ Agregar Nueva Cotización</h3>
+                <div class="input-group">
+                    <input type="number" id="quotationInput" placeholder="Ej: 1532" class="form-control">
+                    <button id="btnAddQuotation" class="btn btn-secondary">Importar a mi Inventario</button>
+                </div>
+                <p id="msgQuotation"></p>
+            </div>
 
-    <!-- Sección para agregar cotización -->
-    <div class="container card" style="margin-bottom: 20px; margin-top: 15px; padding: 25px;">
-        <h3>➕ Agregar Nueva Cotización</h3>
-        <input type="number" id="quotationInput" placeholder="Ej: 1532">
-        <button id="btnAddQuotation">Importar a mi Inventario</button>
-        <p id="msgQuotation"></p>
-    </div>
+            <div class="container mt-4">
+                <h2>📑 Historial de Cotizaciones</h2>
+                <div class="table-container">
+                    <table id="quotationsTable" class="display nowrap" style="width:100%">
+                        <thead>
+                            <tr>
+                                <th>Número</th>
+                                <th>Fecha</th>
+                                <th>Cliente</th>
+                                <th>Acción</th>
+                            </tr>
+                        </thead>
+                        <tbody id="quotationsBody"></tbody>
+                    </table>
+                </div>
+            </div>
 
+            <!-- Contenedor para ver el detalle de la cotización -->
+            <div id="detailContainer" class="container card mt-4" style="display: none;">
+                <div class="detail-header">
+                    <h2 id="detNumber">Detalle de Cotización</h2>
+                    <button id="btnCloseDetail" class="btn btn-close">✖ Cerrar Detalle</button>
+                </div>
 
-    <div class="container" style="margin-top: 20px;">
-        <h2>📑 Historial de Cotizaciones</h2>
-        <table id="quotationsTable" class="display" style="width:100%">
-            <thead>
-                <tr>
-                    <th>Número</th>
-                    <th>Fecha</th>
-                    <th>Cliente</th>
-                    <th>Acción</th>
-                </tr>
-            </thead>
-            <tbody id="quotationsBody"></tbody>
-        </table>
-    </div>
+                <div class="detail-info">
+                    <p><strong>Cliente:</strong> <span id="detCustomer"></span></p>
+                    <p><strong>Dirección:</strong> <span id="detAddress"></span></p>
+                    <p><strong>Fecha/Hora:</strong> <span id="detDateTime"></span></p>
+                </div>
 
-    <!-- Contenedor para ver el detalle de la cotización -->
-    <div id="detailContainer" class="container card"
-        style="margin-top: 20px; display: none; padding: 20px; background: #fff; border: 1px solid #ddd;">
-        <h2 id="detNumber">Detalle de Cotización</h2>
-        <p><strong>Cliente:</strong> <span id="detCustomer"></span></p>
-        <p><strong>Dirección:</strong> <span id="detAddress"></span></p>
-        <p><strong>Fecha/Hora:</strong> <span id="detDateTime"></span></p>
+                <div class="table-container">
+                    <table id="itemsTable" class="styled-table">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Producto</th>
+                                <th>Requerido</th>
+                                <th>Stock Sist. (Histórico)</th>
+                                <th>Stock Actual (Ref)</th>
+                                <th>Estado</th>
+                            </tr>
+                        </thead>
+                        <tbody id="detItemsBody"></tbody>
+                    </table>
+                </div>
+            </div>
 
-        <table id="itemsTable" border="1" style="width: 100%; border-collapse: collapse; margin-top: 10px;">
-            <!--<thead>
-                <tr style="background: #eee;">
-                    <th>Producto</th>
-                    <th>Requerido</th>
-                    <th>Stock Sistema</th>
-                    <th>Estado</th>
-                </tr>
-            </thead>-->
-            <!-- Actualiza los encabezados de tu tabla en el HTML -->
-            <thead>
-                <tr style="background: #eee;">
-                    <th>Producto</th>
-                    <th>Requerido</th>
-                    <th>Stock Sistema (Histórico)</th> <!-- El que viene en el JSON -->
-                    <th>Stock Actual (Referencia)</th> <!-- El de tu tabla sincerada -->
-                    <th>Estado</th>
-                </tr>
-            </thead>
-            <tbody id="detItemsBody"></tbody>
-        </table>
-    </div>
+        </section>
 
-    <!-- Scripts Necesarios -->
+    </main>
+
+    <!-- Scripts -->
     <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
     <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
-
-    <script>
-        async function cargarHistorial() {
-            const res = await fetch('/api/quotations');
-            const quotations = await res.json();
-            const tbody = document.getElementById('quotationsBody');
-            tbody.innerHTML = "";
-
-            quotations.forEach(q => {
-                tbody.innerHTML += `
-            <tr>
-                <td>${q.number}</td>
-                <td>${q.date}</td>
-                <td>${q.customerName}</td>
-                <td>
-                    <button onclick="verCotizacion('${q.number}')" style="background: #007bff; color: white; border: none; padding: 5px 10px; border-radius: 3px; cursor: pointer;">
-                        🔍 Ver Detalle
-                    </button>
-                </td>
-            </tr>
-        `;
-            });
-        }
-
-        // Ejecutar al cargar la página
-        $(document).ready(function () {
-            cargarHistorial();
-        });
-    </script>
-
-    <script>
-        // Función para buscar y mostrar la cotización
-        async function verCotizacion(numero) {
-            const res = await fetch(`/api/quotations/${numero}`);
-            const data = await res.json();
-
-            if (res.ok) {
-                document.getElementById('detailContainer').style.display = 'block';
-                document.getElementById('detNumber').innerText = "Detalle: " + data.number;
-                document.getElementById('detCustomer').innerText = data.customerName;
-                document.getElementById('detAddress').innerText = data.address;
-                document.getElementById('detDateTime').innerText = data.date + " " + data.time;
-
-                const tbody = document.getElementById('detItemsBody');
-                tbody.innerHTML = "";
-                /*
-                data.items.forEach(item => {
-                    const stockOk = item.stockSystem >= item.quantity;
-                    const color = stockOk ? "green" : "red";
-                    const estado = stockOk ? "✅ Disponible" : "❌ Insuficiente";
-
-                    tbody.innerHTML += `
-                    <tr>
-                        <td>${item.description}</td>
-                        <td>${item.quantity}</td>
-                        <td style="color: ${color}">${item.stockSystem}</td>
-                        <td>${estado}</td>
-                    </tr>
-                `;
-                });*/
-
-               // Actualizamos Dentro de la función verCotizacion, en el forEach de los items:
-                data.items.forEach(item => {
-                    // La comparación ahora es contra el stock de tu inventario actualizado
-                    const stockOk = item.stockInventarioActual >= item.quantity;
-                    const colorStock = stockOk ? "green" : "red";
-                    const estado = stockOk ? "✅ Disponible" : "❌ Insuficiente";
-                    
-                    tbody.innerHTML += `
-                        <tr>
-                            <td>${item.description}</td>
-                            <td>${item.quantity}</td>
-                            <td style="color: #888;">${item.stockSystem}</td> <!-- Stock que venía en el JSON original[cite: 1] -->
-                            <td style="font-weight: bold; color: ${colorStock}">${item.stockInventarioActual}</td> <!-- Stock de tu inventario actualizado -->
-                            <td>${estado}</td>
-                        </tr>
-                    `;
-                });
-            } else {
-                alert("Error: " + data.error);
-            }
-        }
-
-        // Puedes llamar a esta función después de importar con éxito:
-        // verCotizacion(num); 
-    </script>
-    <!-- Script para manejar la importación de cotización 
-    <script>
-        document.getElementById('btnAddQuotation').addEventListener('click', async () => {
-            const num = document.getElementById('quotationInput').value;
-            const msg = document.getElementById('msgQuotation');
-
-            if (!num) return alert("Ingresa un número");
-
-            msg.innerText = "⏳ Extrayendo datos de Volper...";
-
-            const res = await fetch('/api/add-quotation', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ quotationNumber: num })
-            });
-
-            const data = await res.json();
-            if (data.success) {
-                msg.innerText = "✅ " + data.message;
-                // Aquí podrías recargar una tabla de cotizaciones si la tienes
-                
-            } else {
-                msg.innerText = "❌ Error: " + data.error;
-            }
-        });
-    </script>-->
-    <script>
-        document.getElementById('btnAddQuotation').addEventListener('click', async () => {
-            const num = document.getElementById('quotationInput').value;
-            const msg = document.getElementById('msgQuotation');
-
-            if (!num) return alert("Ingresa un número");
-
-            msg.innerText = "⏳ Extrayendo datos de Volper...";
-
-            try {
-                const res = await fetch('/api/add-quotation', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ quotationNumber: num })
-                });
-
-                const data = await res.json();
-                if (data.success) {
-                    msg.innerText = "✅ " + data.message;
-                    cargarHistorial(); // <--- Esto actualiza tu lista automáticamente
-                    // LLAMADA CLAVE: Esto hará que la tabla de abajo se cargue sola
-                    const nroCompleto = "COT-" + num;
-                    verCotizacion(nroCompleto);
-                } else {
-                    msg.innerText = "❌ Error: " + data.error;
-                }
-            } catch (err) {
-                msg.innerText = "❌ Error de conexión al servidor.";
-            }
-        });
-    </script>
-
-    <script>
-        $(document).ready(function () {
-            // Inicializar DataTable con tus requisitos de 20, 50, 100
-            const table = $('#productsTable').DataTable({
-                ajax: {
-                    url: '/api/products',
-                    dataSrc: ''
-                },
-                columns: [
-                    { data: 'internal_id' },
-                    { data: 'name' },
-                    { data: 'category' },
-                    { data: 'stock' },
-                    { data: 'salePrice' }
-                ],
-            /*language: {
-                url: '//cdn.datatables.net/plug-ins/1.13.6/i18n/es-ES.json'
-            }*/language: {
-                    search: "Buscar:",
-                    lengthMenu: "Mostrar _MENU_ registros",
-                    info: "Mostrando _START_ a _END_ de _TOTAL_ entradas",
-                    paginate: {
-                        first: "Primero",
-                        last: "Último",
-                        next: "Siguiente",
-                        previous: "Anterior"
-                    },
-                    loadingRecords: "Cargando productos..."
-                },
-                pageLength: 20,
-                lengthMenu: [20, 50, 100] // Menú desplegable solicitado
-            });
-
-            // Lógica del Botón de Actualización
-            $('#btnUpdate').click(async function () {
-                const btn = $(this);
-                btn.prop('disabled', true);
-                $('#status').text("⏳ Procesando 1744 productos... Por favor espere.");
-
-                try {
-                    const res = await fetch('/api/update-catalog');
-                    const data = await res.json();
-                    if (data.success) {
-                        $('#status').text("✅ ¡Éxito! Recargando tabla...");
-                        table.ajax.reload(); // Recarga la tabla automáticamente
-                    }
-                } catch (err) {
-                    $('#status').text("❌ Error en la comunicación.");
-                } finally {
-                    btn.prop('disabled', false);
-                }
-            });
-        });
-    </script>
+    <script src="js/app.js"></script>
 
 </body>
 
