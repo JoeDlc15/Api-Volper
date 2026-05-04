@@ -28,6 +28,7 @@
         <ul class="nav-menu">
             <li><a href="#" class="nav-link active" data-target="view-inventory">📦 Inventario</a></li>
             <li><a href="#" class="nav-link" data-target="view-quotations">📑 Cotizaciones</a></li>
+            <li><a href="#" class="nav-link" data-target="view-movimientos">🔁 Movimientos</a></li>
         </ul>
     </nav>
 
@@ -123,6 +124,37 @@
                 </div>
             </div>
 
+        </section>
+
+        <!-- View: Movimientos -->
+        <section id="view-movimientos" class="view-section">
+            <div class="container">
+                <div class="header-actions">
+                    <div>
+                        <h1>🔁 Movimientos de Inventario</h1>
+                        <div id="statusMovimientos" class="status-msg">Listo para operar.</div>
+                    </div>
+                    <button id="btnUpdateMovimientos" class="btn btn-primary">🔄 Extraer Movimientos</button>
+                </div>
+                <hr>
+                <div class="table-container">
+                    <table id="movimientosTable" class="display nowrap" style="width:100%">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>ID Item</th>
+                                <th>Código</th>
+                                <th>Descripción</th>
+                                <th>Almacén</th>
+                                <th>Stock</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Data loaded via AJAX -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
         </section>
 
     </main>

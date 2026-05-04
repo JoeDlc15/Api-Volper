@@ -46,8 +46,36 @@ app.get('/api/update-catalog', (req, res) => {
             return res.status(500).json({ success: false, message: error.message });
         }
         console.log(`✅ Resultado: ${stdout}`);
-        res.json({ success: true, message: "Catálogo actualizado con 1744 productos." });
+        res.json({ success: true, message: "Catálogo actualizado exitosamente." });
     });
+});
+
+app.get('/api/update-movimientos', (req, res) => {
+    console.log("🚀 Iniciando extracción de movimientos...");
+    exec('node scripts/extraer_movimiento.js', (error, stdout, stderr) => {
+        if (error) {
+            console.error(`❌ Error: ${error.message}`);
+            return res.status(500).json({ success: false, message: error.message });
+        }
+        res.json({ success: true, message: "Movimientos actualizados." });
+    });
+});
+
+const fs = require('fs');
+
+app.get('/api/movimientos', (req, res) => {
+    try {
+        const filePath = path.join(__dirname, 'movimiento.json');
+        if (fs.existsSync(filePath)) {
+            const data = fs.readFileSync(filePath, 'utf-8');
+            const parsed = JSON.parse(data);
+            res.json(parsed.data ? parsed.data : parsed);
+        } else {
+            res.json([]);
+        }
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
 });
 
 // Añade esto a tu archivo server.js actual

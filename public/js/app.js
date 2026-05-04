@@ -1,5 +1,5 @@
 document.addEventListener('DOMContentLoaded', () => {
-    
+
     // --- NAVEGACIÓN Y RESPONSIVE ---
     const navLinks = document.querySelectorAll('.nav-link');
     const viewSections = document.querySelectorAll('.view-section');
@@ -18,7 +18,7 @@ document.addEventListener('DOMContentLoaded', () => {
             // Remover active de todos
             navLinks.forEach(l => l.classList.remove('active'));
             viewSections.forEach(v => v.classList.remove('active'));
-            
+
             // Añadir active al clickeado
             link.classList.add('active');
             const targetId = link.getAttribute('data-target');
@@ -84,6 +84,65 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
+    // --- MOVIMIENTOS ---
+    const tableMovimientos = $('#movimientosTable').DataTable({
+        ajax: {
+            url: '/api/movimientos',
+            dataSrc: ''
+        },
+        columns: [
+            {
+                data: null,
+                render: function (data, type, row, meta) {
+                    return meta.row + 1; // Enumeración de tabla
+                }
+            },
+            { data: 'item_id' },
+            { data: 'item_internal_id' },
+            { data: 'item_description' },
+            { data: 'warehouse_description' },
+            { data: 'stock' }
+        ],
+        language: {
+            search: "Buscar:",
+            lengthMenu: "Mostrar _MENU_ registros",
+            info: "Mostrando _START_ a _END_ de _TOTAL_ entradas",
+            paginate: {
+                first: "Primero",
+                last: "Último",
+                next: "Siguiente",
+                previous: "Anterior"
+            },
+            loadingRecords: "Cargando movimientos...",
+            zeroRecords: "No se encontraron resultados",
+            emptyTable: "Aún no hay datos de movimientos"
+        },
+        pageLength: 20,
+        lengthMenu: [20, 50, 100],
+        scrollX: true
+    });
+
+    $('#btnUpdateMovimientos').click(async function () {
+        const btn = $(this);
+        btn.prop('disabled', true);
+        $('#statusMovimientos').text("⏳ Extrayendo movimientos... Por favor espere.");
+
+        try {
+            const res = await fetch('/api/update-movimientos');
+            const data = await res.json();
+            if (data.success) {
+                $('#statusMovimientos').text("✅ ¡Éxito! Recargando tabla...");
+                tableMovimientos.ajax.reload();
+            } else {
+                $('#statusMovimientos').text("❌ " + (data.error || "Error al actualizar."));
+            }
+        } catch (err) {
+            $('#statusMovimientos').text("❌ Error en la comunicación.");
+        } finally {
+            btn.prop('disabled', false);
+        }
+    });
+
     // --- COTIZACIONES ---
     cargarHistorial();
 
@@ -105,7 +164,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const data = await res.json();
             if (data.success) {
                 msg.innerHTML = "<span style='color: #2ecc71'>✅ " + data.message + "</span>";
-                cargarHistorial(); 
+                cargarHistorial();
                 const nroCompleto = "COT-" + num;
                 verCotizacion(nroCompleto);
                 document.getElementById('quotationInput').value = ''; // limpiar input
@@ -125,7 +184,7 @@ document.addEventListener('DOMContentLoaded', () => {
 async function cargarHistorial() {
     try {
         const res = await fetch('/api/quotations');
-        if(!res.ok) return;
+        if (!res.ok) return;
         const quotations = await res.json();
         const tbody = document.getElementById('quotationsBody');
         tbody.innerHTML = "";
@@ -144,13 +203,13 @@ async function cargarHistorial() {
                 </tr>
             `;
         });
-    } catch(e) {
+    } catch (e) {
         console.error("Error cargando historial", e);
     }
 }
 
 // Expone la función globalmente para que pueda ser llamada desde el HTML (onclick)
-window.verCotizacion = async function(numero) {
+window.verCotizacion = async function (numero) {
     try {
         const res = await fetch(`/api/quotations/${numero}`);
         const data = await res.json();
@@ -173,7 +232,7 @@ window.verCotizacion = async function(numero) {
                 const stockOk = item.stockInventarioActual >= item.quantity;
                 const colorStock = stockOk ? "var(--success-color)" : "var(--danger-color)";
                 const estado = stockOk ? "✅ Disponible" : "❌ Insuficiente";
-                
+
                 tbody.innerHTML += `
                     <tr>
                         <td style="color: #888; font-weight: bold;">${index + 1}</td>
@@ -188,7 +247,7 @@ window.verCotizacion = async function(numero) {
         } else {
             alert("Error al obtener detalle: " + data.error);
         }
-    } catch(e) {
+    } catch (e) {
         console.error("Error al ver cotización", e);
     }
 }
